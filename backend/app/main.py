@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 
 from . import config
-from .local_backend import AuthError, LocalBackend, NotFound
+from .local_backend import AuthError, LocalBackend, NotFound, SignupError
 
 if config.USE_SUPABASE:
     from .supabase_backend import SupabaseBackend
@@ -61,6 +61,11 @@ def rate_limit(request: Request, limit: int = 10, window: int = 60) -> None:
 @app.exception_handler(AuthError)
 async def _auth_error(_, exc: AuthError):
     return JSONResponse({"detail": str(exc)}, status_code=401)
+
+
+@app.exception_handler(SignupError)
+async def _signup_error(_, exc: SignupError):
+    return JSONResponse({"detail": str(exc)}, status_code=exc.status)
 
 
 @app.exception_handler(NotFound)

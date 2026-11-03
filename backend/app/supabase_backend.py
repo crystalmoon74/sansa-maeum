@@ -9,7 +9,18 @@ from datetime import datetime, timezone
 import httpx
 
 from . import config
-from .local_backend import AuthError, NotFound
+from .local_backend import AuthError, NotFound, SignupError
+
+# Supabase Auth 의 error_code → (HTTP 상태, 사용자에게 보일 문구)
+SIGNUP_ERRORS = {
+    "over_email_send_rate_limit": (429, "지금은 가입 확인 메일을 보낼 수 없습니다(시간당 발송 한도). 잠시 후 다시 시도해 주세요."),
+    "over_request_rate_limit": (429, "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요."),
+    "user_already_exists": (409, "이미 가입된 이메일입니다. 로그인해 주세요."),
+    "email_exists": (409, "이미 가입된 이메일입니다. 로그인해 주세요."),
+    "weak_password": (400, "비밀번호가 너무 쉽습니다. 더 길거나 복잡한 비밀번호를 써 주세요."),
+    "email_address_invalid": (400, "사용할 수 없는 이메일 주소입니다."),
+    "signup_disabled": (403, "지금은 새로 가입할 수 없습니다."),
+}
 
 
 class SupabaseBackend:
@@ -39,7 +50,11 @@ class SupabaseBackend:
         r = self._client.post("/auth/v1/signup", headers=self._headers(),
                               json={"email": email, "password": password, "data": {"nickname": nickname}})
         if r.status_code >= 400:
-            raise AuthError("가입할 수 없습니다. 이메일을 확인하거나 다른 비밀번호를 사용해 주세요.")
+            try:
+                code = r.json().get("error_code", "")
+            except ValueError:
+                code = ""
+            raise SignupError(*SIGNUP_ERRORS.get(code, (400, "가입할 수 없습니다. 이메일을 확인하거나 다른 비밀번호를 사용해 주세요.")))
         body = r.json()
         if not body.get("access_token"):
             # 이메일 인증이 켜져 있는 경우 세션 없이 반환된다
@@ -50,6 +65,12 @@ class SupabaseBackend:
         r = self._client.post("/auth/v1/token", params={"grant_type": "password"}, headers=self._headers(),
                               json={"email": email, "password": password})
         if r.status_code >= 400:
+            try:
+                code = r.json().get("error_code", "")
+            except ValueError:
+                code = ""
+            if code == "email_not_confirmed":
+                raise AuthError("메일함의 가입 확인 링크를 먼저 눌러 주세요.")
             raise AuthError("이메일 또는 비밀번호가 올바르지 않습니다.")
         body = r.json()
         return {"token": body["access_token"], "user": self._user(body["user"])}

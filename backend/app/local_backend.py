@@ -67,6 +67,12 @@ class NotFound(Exception):
     pass
 
 
+class SignupError(Exception):
+    def __init__(self, status: int, message: str) -> None:
+        super().__init__(message)
+        self.status = status
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -118,7 +124,7 @@ class LocalBackend:
         user_id = str(uuid.uuid4())
         with self._lock, self._conn() as c:
             if c.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone():
-                raise AuthError("이미 가입된 이메일입니다.")
+                raise SignupError(409, "이미 가입된 이메일입니다. 로그인해 주세요.")
             c.execute(
                 "INSERT INTO users VALUES (?,?,?,?,?,?)",
                 (user_id, email, self._hash(password, salt), salt.hex(), nickname, _now()),
