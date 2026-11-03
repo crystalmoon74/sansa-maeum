@@ -1,18 +1,20 @@
-# Render Blueprint — 백엔드 API (FastAPI)
+# Render 설정 참고용 (무료 플랜)
+# 무료 계정에서는 Blueprint 대신 Dashboard 의 New > Web Service 로 아래 값을 그대로 입력한다.
+#   Source        : Public Git Repository  https://github.com/crystalmoon74/sansa-maeum
+#   Branch        : main
+#   Root Directory: backend
+#   Runtime       : Python 3   (버전은 backend/.python-version)
+#   Build Command : pip install -r requirements.txt
+#   Start Command : uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+#   Instance Type : Free
+# 환경 변수는 필요 없다. Render 위에서는 backend/app/config.py 의 공개 Supabase 설정(URL·publishable 키)과
+# 허용 Origin(https://crystalmoon74.github.io)을 기본값으로 쓴다. 바꾸려면 환경 변수로 덮어쓴다.
 services:
   - type: web
     name: sansa-api
     runtime: python
+    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
     healthCheckPath: /api/health
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.7
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_ANON_KEY
-        sync: false
-      - key: ALLOWED_ORIGINS
-        sync: false   # 예) https://<github-id>.github.io

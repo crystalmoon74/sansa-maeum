@@ -18,8 +18,21 @@ def _load_dotenv(path: Path) -> None:
 
 _load_dotenv(BASE_DIR / ".env")
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", "")
+# Render 가 자동으로 넣어 주는 환경 변수. Render 위에서는 아래 공개 설정을 기본값으로 쓴다.
+ON_RENDER = bool(os.getenv("RENDER"))
+
+# 운영 Supabase 프로젝트의 공개 설정.
+# publishable 키는 브라우저 앱에 넣어 공개해도 되는 키다(권한은 RLS 가 막는다). secret 키는 절대 여기 넣지 않는다.
+PUBLIC_SUPABASE_URL = "https://xjmpmhrohdswalszmapz.supabase.co"
+PUBLIC_SUPABASE_KEY = "sb_publishable_1uimcTFL_zba7lWGMgcNiA_d8P6W5ps"
+PUBLIC_ORIGINS = "https://crystalmoon74.github.io"
+
+SUPABASE_URL = os.getenv("SUPABASE_URL", PUBLIC_SUPABASE_URL if ON_RENDER else "").rstrip("/")
+SUPABASE_ANON_KEY = (
+    os.getenv("SUPABASE_PUBLISHABLE_KEY")
+    or os.getenv("SUPABASE_ANON_KEY")
+    or (PUBLIC_SUPABASE_KEY if ON_RENDER else "")
+)
 
 # Supabase 설정이 없으면 로컬 SQLite 모드로 동작 (로컬 테스트용)
 USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_ANON_KEY)
@@ -28,7 +41,8 @@ ALLOWED_ORIGINS = [
     o.strip()
     for o in os.getenv(
         "ALLOWED_ORIGINS",
-        "http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000,http://127.0.0.1:8000",
+        PUBLIC_ORIGINS if ON_RENDER
+        else "http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000,http://127.0.0.1:8000",
     ).split(",")
     if o.strip()
 ]

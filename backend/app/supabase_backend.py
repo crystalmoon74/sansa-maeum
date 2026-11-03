@@ -20,11 +20,12 @@ class SupabaseBackend:
         self._anon = config.SUPABASE_ANON_KEY
 
     def _headers(self, token: str | None = None) -> dict:
-        return {
-            "apikey": self._anon,
-            "Authorization": f"Bearer {token or self._anon}",
-            "Content-Type": "application/json",
-        }
+        # 새 publishable 키(sb_publishable_...)는 JWT 가 아니므로 Authorization 에 넣지 않는다.
+        # 로그인한 사용자의 요청만 사용자 JWT 를 Bearer 로 보낸다.
+        headers = {"apikey": self._anon, "Content-Type": "application/json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        return headers
 
     @staticmethod
     def _user(data: dict) -> dict:
