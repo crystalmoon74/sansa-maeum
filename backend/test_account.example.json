@@ -1,0 +1,6 @@
+{
+  "_comment": "로컬 SQLite 모드 테스트용 계정 (운영 Supabase 에는 존재하지 않음)",
+  "email": "tester@sansa.test",
+  "password": "lotus-test-2026",
+  "nickname": "연꽃"
+}

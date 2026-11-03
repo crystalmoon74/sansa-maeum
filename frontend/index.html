@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://thumb.wikimedia.org https://upload.wikimedia.org; media-src 'self'; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 https://*.onrender.com; base-uri 'none'; form-action 'self'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>산사의 마음 — 온라인 템플스테이 · 소원 기원</title>
+  <meta name="description" content="전국 다섯 사찰에서 온라인 템플스테이와 합격·소원 기원을 올리는 마음 수양 공간">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='6' width='52' height='52' rx='8' fill='%23b8432f'/%3E%3Ctext x='32' y='45' font-size='34' text-anchor='middle' fill='%23f3ead8' font-family='serif'%3E心%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Brush+Script&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <svg width="0" height="0" class="defs" aria-hidden="true">
+    <defs>
+      <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/>
+      </filter>
+      <filter id="wash" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="8" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="14"/>
+        <feGaussianBlur stdDeviation="1.2"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <header class="site-header">
+    <a class="logo" href="#/">
+      <span class="logo-seal" aria-hidden="true">心</span>
+      <span class="logo-text">산사의 마음</span>
+    </a>
+    <nav class="nav" id="nav"></nav>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <button class="music-btn" id="musicBtn" type="button" aria-pressed="false" title="배경 소리: 산사의 범종">
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M8 6 H40" stroke="#2b2621" stroke-width="3" stroke-linecap="round"/>
+      <path d="M24 6 V10" stroke="#2b2621" stroke-width="3"/>
+      <path d="M15 13 C 15 10 33 10 33 13 L 36 38 C 36 42 12 42 12 38Z" fill="#6c7d6e" stroke="#2b2621" stroke-width="2"/>
+      <path d="M13.5 28 H34.5" stroke="#2b2621" stroke-width="1.4"/>
+      <circle cx="24" cy="33" r="3" fill="#a8b4a0" stroke="#2b2621" stroke-width="1.2"/>
+    </svg>
+    <span class="music-label">범종 소리</span>
+  </button>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <footer class="site-footer">
+    <p>모든 것은 마음이 짓는다 · 一切唯心造</p>
+    <p class="small">이메일 외의 개인정보는 수집하지 않습니다.</p>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
