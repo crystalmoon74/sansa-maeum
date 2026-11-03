@@ -21,7 +21,7 @@
 | 7 | 배경 음악 | 반야심경 → (3차 수정) 범종 소리만 | 범종 소리를 합성해 약 16초마다 울림. 반야심경 음원은 사용자 요청으로 삭제 | ✅ |
 
 ## 3. 개발 요구사항 대응
-- **로컬 구현 후 GitHub Pages 배포**: Supabase 키가 없으면 SQLite 로 동작 → 로컬 즉시 테스트. `frontend/` 는 정적 파일만으로 구성(해시 라우팅)되어 GitHub Pages 에 그대로 배포. 워크플로 `.github/workflows/pages.yml` 포함.
+- **로컬 구현 후 배포** (처음엔 GitHub Pages, 이후 사용자 요청으로 Render 로 일원화): Supabase 키가 없으면 SQLite 로 동작 → 로컬 즉시 테스트. `frontend/` 는 정적 파일만으로 구성(해시 라우팅)되어 GitHub Pages 에 그대로 배포. 워크플로 `.github/workflows/pages.yml` 포함.
 - **모바일 지원**: 반응형 레이아웃(375px 기준 확인), 터치로 울력(문지르기)·절 올리기 가능, safe-area 대응.
 - **문서화**: README.md, 본 PRD, SECURITY_CHECK.md.
 - **보안 점검**: `docs/SECURITY_CHECK.md` 참고.
@@ -34,11 +34,11 @@
 |---|---|---|
 | 개발 언어 | Python | 백엔드 FastAPI (Python 3.12+) / 프론트엔드 Vanilla JS (빌드 불필요) |
 | 백엔드 & DB | Supabase | Supabase Auth + Postgres(RLS) |
-| Web service | Render | `render.yaml` Blueprint |
+| Web service | Render | 무료 Web Service 하나가 웹사이트+API 제공 (Blueprint 미사용) |
 | DB 접속 방식 | API 통해서 | 브라우저 → Render API → Supabase REST(PostgREST)·Auth API. 브라우저는 DB에 직접 접속하지 않음 |
 
 ```
-[브라우저: GitHub Pages] --HTTPS/JSON--> [FastAPI: Render] --REST(사용자 JWT)--> [Supabase Auth / Postgres + RLS]
+[브라우저] --HTTPS--> [FastAPI: Render (웹사이트 + /api)] --REST(사용자 JWT)--> [Supabase Auth / Postgres + RLS]
 ```
 
 ## 5. 데이터 모델
@@ -95,6 +95,11 @@
 - 원인: Supabase Auth 로그 `429 email rate limit exceeded (over_email_send_rate_limit)`. 기본 메일 발송은 시간당 몇 통만 허용되어, 가입 확인 메일이 막히면 가입 자체가 취소됨.
 - 조치: 사용자 승인 후 Supabase **Confirm email 끄기** → 확인 메일 없이 가입 즉시 로그인(PRD "이메일 가입·최소 개인정보" 범위).
   API 는 Supabase 오류 코드별 안내(메일 한도 429, 이미 가입 409, 쉬운 비밀번호, 미인증 로그인)를 보여 주도록 수정.
+
+### 2026-11-03 — 웹사이트를 Render 로 일원화, 범종 기본 On
+- GitHub Pages 를 끄고(배포 워크플로 삭제) Render 무료 Web Service 한 곳에서 웹사이트와 API 를 함께 제공: https://sansa-api-vn7n.onrender.com
+  Render 루트 디렉터리를 저장소 전체로 바꾸고 Build/Start 명령을 `backend/` 경로로 수정. Supabase Site URL 도 Render 주소로 변경.
+- 범종 소리 기본 On: 첫 방문부터 버튼이 켜짐 상태. 브라우저가 소리를 막으면 첫 터치·클릭·키 입력 때 첫 타를 울림. 사용자가 끄면 그 선택을 기억.
 
 ### 남은 일 / 아이디어
 - (선택) 사찰에서 직접 촬영·허락받은 부처님 사진으로 교체

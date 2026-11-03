@@ -15,7 +15,7 @@
 
 ```
 VCMQ/
-├─ frontend/            정적 웹사이트 (GitHub Pages 배포 대상)
+├─ frontend/            정적 웹사이트 (Render 에서 API 와 함께 제공)
 │  ├─ index.html
 │  ├─ css/style.css
 │  ├─ js/app.js         화면·라우터(해시 라우팅)
@@ -25,14 +25,13 @@ VCMQ/
 │  ├─ js/audio.js       범종 배경 소리 / 목탁·종 효과음
 │  ├─ js/figure.js      큰절하는 참배자 관절 애니메이션
 │  ├─ js/config.js      배포용 API 주소 설정
-├─ backend/             Python FastAPI (Render 배포 대상)
+├─ backend/             Python FastAPI (Render 배포, frontend/ 도 함께 제공)
 │  ├─ app/main.py       API 라우트·검증·보안 헤더·요청 제한
 │  ├─ app/supabase_backend.py  Supabase Auth + REST(PostgREST) 연동
 │  ├─ app/local_backend.py     로컬 테스트용 SQLite 백엔드
 │  └─ requirements.txt
 ├─ supabase/schema.sql  테이블 + RLS 정책 + 공유 편지 함수
-├─ render.yaml          Render Blueprint
-├─ .github/workflows/pages.yml  GitHub Pages 자동 배포
+├─ render.yaml          Render 무료 Web Service 설정값 정리
 └─ docs/
    ├─ PRD.md            요구사항 + 개발 기록
    └─ SECURITY_CHECK.md 보안 점검 결과
@@ -55,19 +54,22 @@ python -m uvicorn app.main:app --app-dir backend --port 8000
 
 ## 배포 (운영 중)
 
+웹사이트와 API 를 **Render 무료 Web Service 한 곳**에서 함께 제공합니다. (FastAPI 가 `frontend/` 정적 파일도 서비스)
+
 | 구성 | 주소 |
 |---|---|
-| 웹사이트 (GitHub Pages) | https://crystalmoon74.github.io/sansa-maeum/ |
-| API (Render 무료 Web Service) | https://sansa-api-vn7n.onrender.com (`/api/health`) |
+| 웹사이트 + API (Render 무료) | **https://sansa-api-vn7n.onrender.com** (`/api/health`) |
 | DB·인증 (Supabase) | 프로젝트 `xjmpmhrohdswalszmapz` |
 | 저장소 | https://github.com/crystalmoon74/sansa-maeum |
 
-> Render 무료 플랜은 15분 정도 접속이 없으면 서버가 잠듭니다. 잠든 뒤 첫 요청은 50초 이상 걸릴 수 있습니다.
+> Render 무료 플랜은 15분 정도 접속이 없으면 서버가 잠듭니다. 잠든 뒤 첫 접속은 50초 이상 걸릴 수 있습니다.
+> 예전 GitHub Pages 주소(crystalmoon74.github.io/sansa-maeum)는 꺼 두었습니다.
 
 ### 1) Supabase
 1. **SQL Editor** 에서 `supabase/schema.sql` 실행 (테이블 3개 + RLS + 공유 편지 함수)
-2. **Authentication → URL Configuration → Site URL** = `https://crystalmoon74.github.io/sansa-maeum/` (이메일 인증 링크가 돌아올 주소)
-3. **Project Settings → API Keys** 의 **publishable key** 를 `backend/app/config.py` 의 `PUBLIC_SUPABASE_KEY` 에 넣음.
+2. **Authentication → Sign In / Providers → Confirm email 끄기** (무료 기본 메일 발송 한도 때문에 가입이 막히지 않도록)
+3. **Authentication → URL Configuration → Site URL** = `https://sansa-api-vn7n.onrender.com/`
+4. **Project Settings → API Keys** 의 **publishable key** 를 `backend/app/config.py` 의 `PUBLIC_SUPABASE_KEY` 에 넣음.
    publishable 키는 공개해도 되는 키(예전 anon key)이고, **secret key 는 쓰지 않으며 어디에도 넣지 않습니다.**
 
 ### 2) Render (무료 플랜, Blueprint 없이)
@@ -77,24 +79,18 @@ Blueprint 는 카드 등록이 필요하므로 **New → Web Service → Public 
 |---|---|
 | Repository | `https://github.com/crystalmoon74/sansa-maeum` |
 | Name / Branch | `sansa-api` / `main` |
-| Language | Python 3 (버전은 `backend/.python-version`) |
-| Root Directory | `backend` |
-| Build Command | `pip install -r requirements.txt` |
-| Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"` |
+| Language | Python 3 (버전은 저장소 루트의 `.python-version`) |
+| Root Directory | (비움 — 저장소 전체. `frontend/` 변경도 자동 배포) |
+| Build Command | `pip install -r backend/requirements.txt` |
+| Start Command | `uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"` |
 | Instance Type | **Free** |
-| 환경 변수 | 없음 — Render 위(`RENDER` 환경 변수)에서는 `config.py` 의 공개 Supabase 설정과 허용 Origin(`https://crystalmoon74.github.io`)을 기본값으로 씀 |
+| 환경 변수 | 없음 — Render 위(`RENDER` 환경 변수)에서는 `config.py` 의 공개 Supabase 설정을 기본값으로 씀 |
 
-`main` 에 push 하면 Render 가 자동으로 다시 배포합니다.
-
-### 3) GitHub Pages
-1. `frontend/js/config.js` 의 `apiBase` = Render 주소, `frontend/index.html` CSP `connect-src` 에도 같은 주소
-2. **Settings → Pages → Source = GitHub Actions**. `main` 에 push 하면 `.github/workflows/pages.yml` 이 `frontend/` 를 배포
-
-> GitHub Pages 는 정적 파일을 약 10분 캐시합니다. 배포 직후 옛 화면이 보이면 강력 새로고침(Ctrl+Shift+R)을 하세요.
+`main` 에 push 하면 Render 가 자동으로 다시 배포합니다. 웹사이트와 API 가 같은 주소라 `frontend/js/config.js` 의 `apiBase` 는 비워 둡니다.
 
 ## 배경 소리 (범종)
 
-화면 오른쪽 아래 종 버튼으로 켜고 끕니다. 약 16초마다 범종이 한 번 울리고 길게 여운이 남습니다.
+**기본으로 켜져 있으며** 화면 오른쪽 아래 종 버튼으로 끄고 켭니다(끈 상태는 기억). 브라우저 정책상 첫 터치·클릭 전에는 소리가 막혀 있어, 첫 동작 때 첫 타가 울립니다. 약 16초마다 범종이 한 번 울리고 길게 여운이 남습니다.
 외부 음원 없이 브라우저(Web Audio)에서 합성하며, 낮은 기본음과 배음을 살짝 어긋나게 겹쳐 한국 범종 특유의 '맥놀이'를 냅니다.
 템플스테이 '예불' 단계의 범종 치기도 같은 소리를 씁니다.
 
