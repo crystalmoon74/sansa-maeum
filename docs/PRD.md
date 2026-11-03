@@ -82,7 +82,15 @@
 3. **부처님을 실사 사진으로**: 그림으로 그린 부처님을 지우고, Wikimedia Commons 의 자유 이용 사진(CC0·CC BY·CC BY-SA·퍼블릭 도메인)으로 교체.
    사찰 입구의 "법당 안으로" 장면과 절 올리는 장면 모두 사진을 쓰고, 사진 아래에 저작자·라이선스·원본 링크를 표시.
 
+### 2026-11-03 — 운영 배포
+- GitHub 공개 저장소 `crystalmoon74/sansa-maeum` 생성·push, GitHub Pages(Actions) 배포: https://crystalmoon74.github.io/sansa-maeum/
+- Render 무료 플랜은 Blueprint 에 카드가 필요해, **Public Git Repository 로 무료 Web Service** 를 직접 생성: https://sansa-api-vn7n.onrender.com
+  환경 변수 없이 동작하도록 Render 위에서는 공개 Supabase 설정(URL·publishable 키)과 허용 Origin 을 기본값으로 사용.
+- Supabase 새 키 체계(publishable/secret) 대응: publishable 키를 apikey 헤더로만 보냄. Site URL 을 GitHub Pages 주소로 설정.
+- 이메일 인증 링크(#access_token=...)로 돌아오면 토큰은 버리고 로그인 화면으로 안내.
+- 확인: 공개 사이트 로딩·사진 표시, API health(supabase 모드), CORS, 인증 없는 요청 401, 없는 편지 404.
+
 ### 남은 일 / 아이디어
 - (선택) 사찰에서 직접 촬영·허락받은 부처님 사진으로 교체
-- Supabase 프로젝트 연결 후 운영 모드 통합 테스트
+- 실제 이메일 계정으로 가입 → 인증 → 템플스테이·소원·편지 공유 운영 통합 테스트
 - (선택) 비밀번호 재설정, 회원 탈퇴 화면

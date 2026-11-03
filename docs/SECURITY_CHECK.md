@@ -32,6 +32,7 @@
 | 14 | 보안 헤더 | ✅ | API: `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` |
 | 15 | 비밀 정보 관리 | ✅ | 키는 환경 변수/`backend/.env`(gitignore). 저장소에는 `.env.example` 만. 프론트엔드에는 키가 없음 |
 | 16 | 사용자 수정 가능한 메타데이터 | ✅ | Supabase `user_metadata.nickname` 은 서버에서 20자로 다시 자름 |
+| 18 | 운영 배포 설정 | ✅ | 저장소에는 Supabase **publishable 키**만 들어 있음(공개용 키, 권한은 RLS 가 제한). secret 키는 저장소·Render 어디에도 없음. publishable 키는 JWT 가 아니므로 Authorization 헤더로 보내지 않음. CSP `connect-src` 는 실제 Render 주소만 허용(`*.onrender.com` 와일드카드 제거). Render 는 CORS 로 `https://crystalmoon74.github.io` 만 허용 |
 | 17 | 외부 사진 (3차 수정) | ✅ | CSP `img-src` 에 `thumb.wikimedia.org`, `upload.wikimedia.org` 만 추가. 이미지만 불러오고 `referrerpolicy="no-referrer"` 로 페이지 주소를 보내지 않음. 출처 링크는 `rel="noopener noreferrer"`. 외부 음원·스크립트 없음(`media-src 'self'`) |
 
 ## 실행한 시험 (로컬 모드, 2026-11-03)
@@ -57,16 +58,17 @@
 1. **토큰을 localStorage 에 저장** — XSS 가 생기면 토큰이 노출될 수 있음. 현재 CSP·이스케이프로 막고 있으며, 더 강하게 하려면 httpOnly 쿠키 + CSRF 토큰 방식으로 바꿀 것.
 2. **요청 제한이 메모리 기반** — Render 인스턴스가 여러 개거나 재시작되면 초기화됨. 규모가 커지면 Redis 등 공유 저장소 사용. Supabase Auth 자체 rate limit 도 함께 적용됨.
 3. **GitHub Pages 는 응답 헤더를 바꿀 수 없음** — `X-Frame-Options`/`frame-ancestors` 미적용(클릭재킹 위험 낮음: 결제·민감 동작 없음). 필요하면 Cloudflare 등 앞단에서 헤더 추가.
-4. **배포 시 CSP 정리** — `index.html` 의 `connect-src` 에 개발용 `http://localhost:8000` 이 포함됨. 운영 배포 시 실제 Render 주소만 남길 것.
+4. **CSP 의 개발용 주소** — `connect-src` 에 로컬 테스트용 `http://localhost:8000` 이 남아 있음(운영 위험 낮음: 방문자 PC 의 로컬 서버로만 향함). 원하면 운영용 index.html 에서 제거.
 5. **공유 편지는 링크를 아는 누구나 열람** — 화면에 "실명·연락처는 적지 않기를 권함" 안내 표시. 원치 않으면 '나의 기록'에서 삭제(링크 즉시 무효).
 6. **의존성 버전** — `requirements.txt` 가 최소 버전만 지정. 운영 전 `pip freeze` 로 고정하고 정기적으로 `pip-audit` 실행 권장.
 7. (참고) 로컬 모드 가입은 "이미 가입된 이메일" 을 알려 줌 — 로컬 테스트 전용이라 허용.
 
 ## 운영 배포 체크리스트
 
-- [ ] Supabase 에서 `schema.sql` 실행 후 Table Editor 에서 세 테이블 모두 **RLS enabled** 확인
-- [ ] Render 환경 변수에 `service_role` 키를 넣지 않았는지 확인 (anon 키만)
-- [ ] `ALLOWED_ORIGINS` 에 GitHub Pages 주소만 등록
-- [ ] `frontend/js/config.js` `apiBase` 와 CSP `connect-src` 를 실제 Render 주소로 맞춤
-- [ ] Supabase Auth: 이메일 확인 켜기, 비밀번호 최소 길이 8 이상
-- [ ] `backend/.env`, `backend/data/` 가 커밋되지 않았는지 확인
+- [x] Supabase 에서 `schema.sql` 실행 (세 테이블·공유 편지 함수 응답 확인, 2026-11-03)
+- [x] Render 환경 변수 없음 — secret/service_role 키 미사용
+- [x] 허용 Origin = `https://crystalmoon74.github.io` (CORS 응답 확인)
+- [x] `apiBase`·CSP `connect-src` = `https://sansa-api-vn7n.onrender.com`
+- [x] Supabase Auth: 이메일 확인 켜짐, Site URL = GitHub Pages 주소
+- [ ] (권장) Supabase Auth 비밀번호 최소 길이를 8 이상으로 설정 (서버에서도 8자 이상 검사함)
+- [x] `backend/.env`, `backend/data/`, `.claude/` 커밋 안 됨

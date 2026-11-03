@@ -770,6 +770,13 @@ async function myView() {
 // ---------- 라우터 ----------
 async function route() {
   cleanup.forEach((fn) => fn()); cleanup = [];
+  // Supabase 이메일 인증 링크는 #access_token=... 또는 #error=... 로 돌아온다. 토큰은 쓰지 않고 로그인 화면으로 보낸다.
+  const raw = location.hash.replace(/^#\/?/, "");
+  if (/^(access_token|error)=/.test(raw)) {
+    const p = new URLSearchParams(raw);
+    history.replaceState(null, "", location.pathname + "#/login");
+    toast(p.get("error") ? "인증 링크가 만료되었거나 잘못되었습니다. 다시 가입하거나 로그인해 주세요." : "이메일 인증이 끝났습니다. 로그인해 주세요. 🙏");
+  }
   const { parts, query } = parseHash();
   const [page, arg] = parts;
   renderNav();

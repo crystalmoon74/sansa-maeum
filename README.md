@@ -53,26 +53,42 @@ python -m uvicorn app.main:app --app-dir backend --port 8000
 브라우저에서 http://localhost:8000 을 엽니다. (FastAPI 가 프론트엔드도 함께 제공)
 로컬 테스트 계정은 `backend/test_account.example.json` 에 있습니다(직접 가입해도 됩니다).
 
-## 배포
+## 배포 (운영 중)
+
+| 구성 | 주소 |
+|---|---|
+| 웹사이트 (GitHub Pages) | https://crystalmoon74.github.io/sansa-maeum/ |
+| API (Render 무료 Web Service) | https://sansa-api-vn7n.onrender.com (`/api/health`) |
+| DB·인증 (Supabase) | 프로젝트 `xjmpmhrohdswalszmapz` |
+| 저장소 | https://github.com/crystalmoon74/sansa-maeum |
+
+> Render 무료 플랜은 15분 정도 접속이 없으면 서버가 잠듭니다. 잠든 뒤 첫 요청은 50초 이상 걸릴 수 있습니다.
 
 ### 1) Supabase
-1. 새 프로젝트를 만들고 **SQL Editor** 에서 `supabase/schema.sql` 을 실행합니다.
-2. **Authentication > Providers > Email** 을 켭니다. (이메일 확인을 켜 두면 가입 후 메일 인증이 필요합니다)
-3. **Project Settings > API** 에서 `Project URL` 과 `anon public` 키를 복사합니다.
-   (`service_role` 키는 사용하지 않습니다 — 절대 어디에도 넣지 마세요)
+1. **SQL Editor** 에서 `supabase/schema.sql` 실행 (테이블 3개 + RLS + 공유 편지 함수)
+2. **Authentication → URL Configuration → Site URL** = `https://crystalmoon74.github.io/sansa-maeum/` (이메일 인증 링크가 돌아올 주소)
+3. **Project Settings → API Keys** 의 **publishable key** 를 `backend/app/config.py` 의 `PUBLIC_SUPABASE_KEY` 에 넣음.
+   publishable 키는 공개해도 되는 키(예전 anon key)이고, **secret key 는 쓰지 않으며 어디에도 넣지 않습니다.**
 
-### 2) Render (백엔드)
-1. 이 저장소를 GitHub 에 올린 뒤 Render 에서 **New > Blueprint** 로 `render.yaml` 을 선택합니다.
-2. 환경 변수 입력:
-   - `SUPABASE_URL`, `SUPABASE_ANON_KEY`
-   - `ALLOWED_ORIGINS` = `https://<github-id>.github.io`
-3. 배포 후 `https://<서비스명>.onrender.com/api/health` 가 `{"ok":true,"mode":"supabase"}` 를 반환하는지 확인합니다.
+### 2) Render (무료 플랜, Blueprint 없이)
+Blueprint 는 카드 등록이 필요하므로 **New → Web Service → Public Git Repository** 로 만듭니다.
 
-### 3) GitHub Pages (프론트엔드)
-1. `frontend/js/config.js` 의 `apiBase` 를 Render 주소로 바꿉니다.
-2. Render 주소가 `*.onrender.com` 이 아니라면 `frontend/index.html` CSP 의 `connect-src` 에도 추가합니다.
-3. GitHub 저장소 **Settings > Pages > Source** 를 **GitHub Actions** 로 바꾸고 `main` 에 push 하면
-   `.github/workflows/pages.yml` 이 `frontend/` 를 배포합니다.
+| 항목 | 값 |
+|---|---|
+| Repository | `https://github.com/crystalmoon74/sansa-maeum` |
+| Name / Branch | `sansa-api` / `main` |
+| Language | Python 3 (버전은 `backend/.python-version`) |
+| Root Directory | `backend` |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"` |
+| Instance Type | **Free** |
+| 환경 변수 | 없음 — Render 위(`RENDER` 환경 변수)에서는 `config.py` 의 공개 Supabase 설정과 허용 Origin(`https://crystalmoon74.github.io`)을 기본값으로 씀 |
+
+`main` 에 push 하면 Render 가 자동으로 다시 배포합니다.
+
+### 3) GitHub Pages
+1. `frontend/js/config.js` 의 `apiBase` = Render 주소, `frontend/index.html` CSP `connect-src` 에도 같은 주소
+2. **Settings → Pages → Source = GitHub Actions**. `main` 에 push 하면 `.github/workflows/pages.yml` 이 `frontend/` 를 배포
 
 > GitHub Pages 는 정적 파일을 약 10분 캐시합니다. 배포 직후 옛 화면이 보이면 강력 새로고침(Ctrl+Shift+R)을 하세요.
 
