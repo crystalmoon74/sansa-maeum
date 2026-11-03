@@ -61,7 +61,8 @@
 4. **CSP 의 개발용 주소** — `connect-src` 에 로컬 테스트용 `http://localhost:8000` 이 남아 있음(운영 위험 낮음: 방문자 PC 의 로컬 서버로만 향함). 원하면 운영용 index.html 에서 제거.
 5. **공유 편지는 링크를 아는 누구나 열람** — 화면에 "실명·연락처는 적지 않기를 권함" 안내 표시. 원치 않으면 '나의 기록'에서 삭제(링크 즉시 무효).
 6. **의존성 버전** — `requirements.txt` 가 최소 버전만 지정. 운영 전 `pip freeze` 로 고정하고 정기적으로 `pip-audit` 실행 권장.
-7. (참고) 로컬 모드 가입은 "이미 가입된 이메일" 을 알려 줌 — 로컬 테스트 전용이라 허용.
+7. **이메일 소유 확인 없음** — Confirm email 을 꺼서 남의 이메일로도 가입할 수 있음. 이메일 외 개인정보가 없고 데이터는 계정별로 분리(RLS)되어 위험은 낮음. 필요해지면 SMTP 연결 후 다시 켤 것.
+8. (참고) 로컬 모드 가입은 "이미 가입된 이메일" 을 알려 줌 — 로컬 테스트 전용이라 허용.
 
 ## 운영 배포 체크리스트
 
@@ -69,6 +70,7 @@
 - [x] Render 환경 변수 없음 — secret/service_role 키 미사용
 - [x] 허용 Origin = `https://crystalmoon74.github.io` (CORS 응답 확인)
 - [x] `apiBase`·CSP `connect-src` = `https://sansa-api-vn7n.onrender.com`
-- [x] Supabase Auth: 이메일 확인 켜짐, Site URL = GitHub Pages 주소
+- [x] Supabase Auth: Site URL = GitHub Pages 주소
+- [x] Supabase Auth: **Confirm email 꺼짐** (2026-11-03, 기본 메일 발송 한도로 가입이 막혀 사용자 승인 후 변경)
 - [ ] (권장) Supabase Auth 비밀번호 최소 길이를 8 이상으로 설정 (서버에서도 8자 이상 검사함)
 - [x] `backend/.env`, `backend/data/`, `.claude/` 커밋 안 됨
