@@ -1,7 +1,7 @@
 # 보안 점검 결과 (SECURITY CHECK)
 
 - 점검일: 2026-11-03
-- 대상: `frontend/`, `backend/`, `supabase/schema.sql`, 배포 설정(`render.yaml`, `pages.yml`)
+- 대상: `frontend/`, `backend/`, `supabase/schema.sql`, 배포 설정(`render.yaml`, Render·Supabase 대시보드 설정)
 - 방법: 코드 검토 + 로컬 서버 대상 API 시험(아래 "실행한 시험")
 
 ## 요약
