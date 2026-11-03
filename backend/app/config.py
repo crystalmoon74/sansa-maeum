@@ -25,7 +25,7 @@ ON_RENDER = bool(os.getenv("RENDER"))
 # publishable 키는 브라우저 앱에 넣어 공개해도 되는 키다(권한은 RLS 가 막는다). secret 키는 절대 여기 넣지 않는다.
 PUBLIC_SUPABASE_URL = "https://xjmpmhrohdswalszmapz.supabase.co"
 PUBLIC_SUPABASE_KEY = "sb_publishable_1uimcTFL_zba7lWGMgcNiA_d8P6W5ps"
-PUBLIC_ORIGINS = "https://crystalmoon74.github.io"
+PUBLIC_ORIGINS = "https://sansa-api-vn7n.onrender.com"  # 웹사이트도 같은 주소에서 제공
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", PUBLIC_SUPABASE_URL if ON_RENDER else "").rstrip("/")
 SUPABASE_ANON_KEY = (

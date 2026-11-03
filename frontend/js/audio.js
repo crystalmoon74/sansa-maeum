@@ -103,16 +103,30 @@ export function templeBell(volume = 0.5) {
     });
 }
 
+// 범종은 기본으로 켜져 있다. 브라우저는 사용자가 화면을 한 번 누르기 전까지 소리를 막으므로,
+// 소리가 막혀 있으면 버튼은 켜짐으로 두고 첫 터치·클릭·키 입력 때 바로 첫 타를 울린다.
+let pendingFirstBell = false;
+
+function ringIfAllowed(volume) {
+  if (!playing || !ctx) return;
+  if (ctx.state === "running") templeBell(volume);
+  else pendingFirstBell = true;
+}
+
 export function startMusic() {
   if (playing || !ensureCtx()) return;
   playing = true;
   updateButton();
-  templeBell(0.55);
-  bellTimer = setInterval(() => templeBell(0.45), BELL_EVERY_MS);
+  ctx.onstatechange = () => {
+    if (ctx.state === "running" && pendingFirstBell && playing) { pendingFirstBell = false; templeBell(0.55); }
+  };
+  ringIfAllowed(0.55);
+  bellTimer = setInterval(() => ringIfAllowed(0.45), BELL_EVERY_MS);
 }
 
 export function stopMusic() {
   playing = false;
+  pendingFirstBell = false;
   clearInterval(bellTimer);
   updateButton();
 }
@@ -136,15 +150,19 @@ export function wantsMusic() {
 export function initMusicButton() {
   const btn = document.getElementById("musicBtn");
   btn.addEventListener("click", () => {
+    // 켜져 있지만 아직 소리가 막혀 있던 상태라면, 첫 클릭은 끄지 않고 소리를 풀어 준다
+    if (playing && ctx && ctx.state !== "running") { ensureCtx(); return; }
     if (playing) { stopMusic(); savePref(false); } else { startMusic(); savePref(true); }
   });
-  // 브라우저 자동재생 정책: 첫 사용자 동작 때 시작
-  const kick = (e) => {
+  // 기본값 On: 처음 방문했거나 끄지 않았다면 바로 켬
+  if (wantsMusic()) startMusic();
+  // 첫 사용자 동작에서 막혀 있던 오디오를 풀어 준다
+  const unlock = (e) => {
     if (e.target.closest && e.target.closest("#musicBtn")) return;
-    window.removeEventListener("pointerdown", kick);
-    window.removeEventListener("keydown", kick);
-    if (wantsMusic() && !playing) startMusic();
+    window.removeEventListener("pointerdown", unlock);
+    window.removeEventListener("keydown", unlock);
+    if (playing) ensureCtx();
   };
-  window.addEventListener("pointerdown", kick);
-  window.addEventListener("keydown", kick);
+  window.addEventListener("pointerdown", unlock);
+  window.addEventListener("keydown", unlock);
 }
